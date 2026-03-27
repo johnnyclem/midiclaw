@@ -46,6 +46,21 @@ public final class AppState: ObservableObject {
     @Published public var currentSession: Session? = nil
     @Published public var sessions: [Session] = []
 
+    // MARK: - Instrument & Navigation
+    @Published var controlledInstrument: ControlledInstrument = .piano
+    @Published var hasCompletedOnboarding: Bool = false
+
+    // MARK: - Chat
+    @Published var chatMessages: [ChatMessage] = []
+
+    // MARK: - Instruments
+    @Published var pianoModel = PianoModel()
+    @Published var sequencerModel = StepSequencerModel()
+
+    // MARK: - Mindi Accompanist
+    @Published var mindi = MindiAccompanist()
+    @Published var llmManager = LLMManager()
+
     // MARK: - Services
     public let midiManager = MIDIManager()
     public let hardwareScanner = MIDIHardwareScanner()
@@ -63,7 +78,17 @@ public final class AppState: ObservableObject {
     private static let maxRecentEvents = 200
     private static let maxRecentTokens = 500
 
-    public init() {}
+    public init() {
+        // Check if onboarding was already completed
+        hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        mindi.configure(llmManager: llmManager)
+
+        // Add welcome message to chat
+        chatMessages.append(ChatMessage(
+            role: .mindi,
+            content: "Hi! I'm Mindi, your AI music accompanist. I can help with chord progressions, drum patterns, and real-time accompaniment. Toggle me on to start jamming together!"
+        ))
+    }
 
     /// Initialize all services and start MIDI.
     public func setup() {
@@ -132,6 +157,69 @@ public final class AppState: ObservableObject {
         if isRecording {
             recorder?.record(events: events)
         }
+
+        // If Mindi is enabled and we're receiving piano input, trigger accompaniment
+        if mindi.isEnabled && controlledInstrument == .piano {
+            // Feed piano events to Mindi for drum accompaniment
+            Task {
+                await triggerMindiAccompaniment()
+            }
+        }
+    }
+
+    // MARK: - Mindi Integration
+
+    /// Send MIDI events out through the port manager.
+    func sendMIDI(_ events: [MIDIEvent]) {
+        try? portManager?.send(events: events)
+        handleIncomingEvents(events) // Also display locally
+    }
+
+    /// Trigger Mindi to generate accompaniment based on current input.
+    func triggerMindiAccompaniment() async {
+        guard mindi.isEnabled, !mindi.isGenerating else { return }
+
+        switch controlledInstrument {
+        case .piano:
+            let pattern = await mindi.generateDrumAccompaniment(
+                pianoNotes: pianoModel.recentNotes,
+                currentBPM: sequencerModel.bpm
+            )
+            sequencerModel.loadPattern(pattern)
+
+        case .drums:
+            let events = await mindi.generatePianoAccompaniment(
+                drumPattern: sequencerModel.currentPattern(),
+                currentBPM: sequencerModel.bpm
+            )
+            for event in events {
+                try? portManager?.send(events: [event])
+            }
+        }
+    }
+
+    // MARK: - Chat
+
+    /// Send a chat message to Mindi and get a response.
+    func sendChatMessage(_ text: String) async {
+        let userMessage = ChatMessage(role: .user, content: text)
+        chatMessages.append(userMessage)
+
+        let response = await llmManager.generate(prompt: text)
+        let mindiMessage = ChatMessage(role: .mindi, content: response)
+        chatMessages.append(mindiMessage)
+    }
+
+    // MARK: - Onboarding
+
+    func completeOnboarding() {
+        hasCompletedOnboarding = true
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+    }
+
+    func resetOnboarding() {
+        hasCompletedOnboarding = false
+        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
     }
 
     // MARK: - Recording Controls
@@ -166,6 +254,7 @@ public final class AppState: ObservableObject {
         if isRecording {
             stopRecording()
         }
+        sequencerModel.stop()
         player?.stop()
         portManager?.dispose()
         midiManager.stop()

@@ -26,7 +26,12 @@ let package = Package(
         .executableTarget(
             name: "MidiClaw",
             dependencies: ["MidiClawCore"],
-            path: "Sources/MidiClaw"
+            path: "Sources/MidiClaw",
+            linkerSettings: [
+                .linkedFramework("AVFoundation"),
+                .linkedFramework("AudioToolbox"),
+                .linkedFramework("CoreMIDI"),
+            ]
         ),
         .target(
             name: "MidiClawAU",
