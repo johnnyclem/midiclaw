@@ -9,6 +9,7 @@ let package = Package(
     ],
     products: [
         .library(name: "MidiClawCore", targets: ["MidiClawCore"]),
+        .library(name: "MidiClawAU", targets: ["MidiClawAU"]),
         .executable(name: "MidiClaw", targets: ["MidiClaw"])
     ],
     dependencies: [
@@ -27,10 +28,26 @@ let package = Package(
             dependencies: ["MidiClawCore"],
             path: "Sources/MidiClaw"
         ),
+        .target(
+            name: "MidiClawAU",
+            dependencies: ["MidiClawCore"],
+            path: "Sources/MidiClawAU",
+            linkerSettings: [
+                .linkedFramework("AudioToolbox"),
+                .linkedFramework("CoreMIDI"),
+                .linkedFramework("CoreAudioKit"),
+                .linkedFramework("AVFoundation"),
+            ]
+        ),
         .testTarget(
             name: "MidiClawCoreTests",
             dependencies: ["MidiClawCore"],
             path: "Tests/MidiClawCoreTests"
+        ),
+        .testTarget(
+            name: "MidiClawAUTests",
+            dependencies: ["MidiClawAU", "MidiClawCore"],
+            path: "Tests/MidiClawAUTests"
         )
     ]
 )
