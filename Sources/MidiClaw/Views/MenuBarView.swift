@@ -68,12 +68,21 @@ struct MenuBarView: View {
 
             Divider()
 
-            // Quick Actions
-            Button(action: { openWindow(id: "monitor") }) {
-                Label("Open Monitor", systemImage: "eye")
+            // Mindi Toggle
+            HStack {
+                Image(systemName: "wand.and.stars")
+                    .foregroundStyle(appState.mindi.isEnabled ? .accent : .secondary)
+                Text("Mindi Accompanist")
+                Spacer()
+                Toggle("", isOn: $appState.mindi.isEnabled)
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .controlSize(.small)
             }
-            .buttonStyle(.plain)
 
+            Divider()
+
+            // Quick Actions
             Button(action: { openWindow(id: "sessions") }) {
                 Label("Sessions (\(appState.sessions.count))", systemImage: "list.bullet")
             }

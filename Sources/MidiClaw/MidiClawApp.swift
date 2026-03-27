@@ -13,11 +13,20 @@ struct MidiClawApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        // Main monitor window
-        Window("MidiClaw Monitor", id: "monitor") {
-            MonitorView(appState: appState)
-                .frame(minWidth: 600, minHeight: 400)
+        // Main application window
+        WindowGroup("MidiClaw") {
+            Group {
+                if appState.hasCompletedOnboarding {
+                    MainContentView(appState: appState)
+                } else {
+                    OnboardingView(appState: appState)
+                        .onAppear {
+                            appState.setup()
+                        }
+                }
+            }
         }
+        .defaultSize(width: 1100, height: 700)
 
         // Session browser window
         Window("Sessions", id: "sessions") {
@@ -27,11 +36,15 @@ struct MidiClawApp: App {
 
         // Settings window
         Settings {
-            SettingsView(appState: appState)
+            HostSettingsView(appState: appState)
+                .frame(width: 500, height: 600)
         }
     }
 
     private var menuBarIcon: String {
+        if appState.mindi.isEnabled {
+            return "wand.and.stars"
+        }
         switch appState.currentMode {
         case .monitor: return "eye"
         case .copilot: return "person.2"
@@ -40,30 +53,6 @@ struct MidiClawApp: App {
     }
 
     init() {}
-}
-
-/// Placeholder settings view.
-struct SettingsView: View {
-    @ObservedObject var appState: AppState
-
-    var body: some View {
-        Form {
-            Section("Agent Mode") {
-                Picker("Mode", selection: $appState.currentMode) {
-                    ForEach(AgentMode.allCases) { mode in
-                        Text(mode.rawValue).tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-
-                Text(appState.currentMode.description)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .formStyle(.grouped)
-        .frame(width: 400, height: 200)
-    }
 }
 #else
 // Non-macOS: simple entry point for build verification
