@@ -1,0 +1,98 @@
+name: Release macOS Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: Build macOS Apple Silicon
+    runs-on: macos-14  # Apple Silicon (M1) runner
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build MidiClaw host app (Release)
+        run: swift build -c release --arch arm64
+
+      - name: Build MidiClawAU AudioUnit (Release)
+        run: swift build -c release --arch arm64 --product MidiClawAU
+
+      - name: Clone VST3 SDK
+        working-directory: VST
+        run: git clone --recursive https://github.com/steinbergmedia/vst3sdk.git
+
+      - name: Build MidiClaw VST3 plugin
+        working-directory: VST
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DVST3_SDK_ROOT=$(pwd)/vst3sdk
+          cmake --build build --config Release
+
+      - name: Package binaries
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          STAGING="MidiClaw-${VERSION}-macOS-arm64"
+          mkdir -p "${STAGING}"
+
+          # Host application
+          cp .build/release/MidiClaw "${STAGING}/MidiClaw"
+
+          # AudioUnit - package the dylib
+          AU_LIB=$(find .build/release -name "libMidiClawAU.*" -o -name "MidiClawAU.o" | head -1)
+          if [ -n "$AU_LIB" ]; then
+            mkdir -p "${STAGING}/AudioUnit"
+            cp "$AU_LIB" "${STAGING}/AudioUnit/"
+          fi
+          # Also copy all AU-related build products
+          find .build/release -name "*MidiClawAU*" -exec cp {} "${STAGING}/AudioUnit/" \; 2>/dev/null || true
+
+          # VST3 plugin bundle
+          VST_BUNDLE=$(find VST/build -name "MidiClawVST.vst3" -type d | head -1)
+          if [ -n "$VST_BUNDLE" ]; then
+            mkdir -p "${STAGING}/VST3"
+            cp -R "$VST_BUNDLE" "${STAGING}/VST3/"
+          else
+            # Try finding the built library directly
+            mkdir -p "${STAGING}/VST3"
+            find VST/build -name "*.vst3" -exec cp -R {} "${STAGING}/VST3/" \; 2>/dev/null || true
+          fi
+
+          # Include README
+          cp README.md "${STAGING}/"
+
+          # Create zip archive
+          zip -r "${STAGING}.zip" "${STAGING}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: MidiClaw-*-macOS-arm64.zip
+          body: |
+            ## MidiClaw ${{ github.ref_name }}
+
+            ### Included binaries (macOS Apple Silicon / arm64)
+
+            - **MidiClaw** — standalone host application with Mindi AI accompanist
+            - **MidiClawAU** — AUv3 AudioUnit MIDI effect plugin
+            - **MidiClawVST** — VST3 MIDI effect plugin
+
+            ### Installation
+
+            1. Download and unzip `MidiClaw-*-macOS-arm64.zip`
+            2. **Host app**: Move `MidiClaw` to `/Applications/` or run directly
+            3. **AudioUnit**: Copy contents of `AudioUnit/` to `~/Library/Audio/Plug-Ins/Components/`
+            4. **VST3**: Copy `MidiClawVST.vst3` to `~/Library/Audio/Plug-Ins/VST3/`
+
+            ### Requirements
+
+            - macOS 14.0 (Sonoma) or later
+            - Apple Silicon (M1/M2/M3/M4)
+            - Optional: Python 3 + MLX for on-device AI inference
