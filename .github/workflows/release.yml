@@ -17,7 +17,7 @@ permissions:
 jobs:
   build-macos:
     name: Build macOS Apple Silicon
-    runs-on: macos-14  # Apple Silicon (M1) runner
+    runs-on: macos-14
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,11 +34,20 @@ jobs:
             echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Show build environment
+        run: |
+          swift --version
+          xcodebuild -version
+          uname -m
+
+      - name: Resolve Swift package dependencies
+        run: swift package resolve
+
       - name: Build MidiClaw host app (Release)
-        run: swift build -c release --arch arm64
+        run: swift build -c release --product MidiClaw -v 2>&1 | tee build-host.log
 
       - name: Build MidiClawAU AudioUnit (Release)
-        run: swift build -c release --arch arm64 --product MidiClawAU
+        run: swift build -c release --product MidiClawAU -v 2>&1 | tee build-au.log
 
       - name: Clone VST3 SDK
         working-directory: VST
@@ -65,7 +74,7 @@ jobs:
           # AudioUnit - package the dylib
           mkdir -p "${STAGING}/AudioUnit"
           find .build/release -name "libMidiClawAU.*" -exec cp {} "${STAGING}/AudioUnit/" \; 2>/dev/null || true
-          find .build/release -name "*MidiClawAU*" -exec cp {} "${STAGING}/AudioUnit/" \; 2>/dev/null || true
+          find .build/release -name "*MidiClawAU*" ! -name "*.build" -exec cp {} "${STAGING}/AudioUnit/" \; 2>/dev/null || true
 
           # VST3 plugin bundle
           mkdir -p "${STAGING}/VST3"
@@ -118,3 +127,11 @@ jobs:
             - macOS 14.0 (Sonoma) or later
             - Apple Silicon (M1/M2/M3/M4)
             - Optional: Python 3 + MLX for on-device AI inference
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: build-*.log
+          retention-days: 7
