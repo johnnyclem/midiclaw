@@ -1,5 +1,6 @@
 #if os(macOS)
 import AudioToolbox
+import AVFoundation
 import CoreMIDI
 import Foundation
 import MidiClawCore
@@ -82,13 +83,13 @@ public final class MidiClawAudioUnit: AUAudioUnit {
         [2, 2]
     }
 
-    public override var musicDeviceOrEffect: Bool { true }
+    public override var isMusicDeviceOrEffect: Bool { true }
 
-    public override var MIDIOutputNames: [String] {
+    public override var midiOutputNames: [String] {
         ["MidiClaw MIDI Out"]
     }
 
-    public override var MIDIOutputEventBlock: AUMIDIOutputEventBlock? {
+    public override var midiOutputEventBlock: AUMIDIOutputEventBlock? {
         get { midiOutputBlock }
         set { midiOutputBlock = newValue }
     }
@@ -165,7 +166,7 @@ public final class MidiClawAudioUnit: AUAudioUnit {
 
     /// Handle MIDI events received directly (not through render cycle).
     /// Called by the host for real-time MIDI input.
-    public override func handle(
+    public func handle(
         _ event: AUMIDIEvent,
         eventSampleTime: AUEventSampleTime,
         cable: UInt8
@@ -190,7 +191,7 @@ public final class MidiClawAudioUnit: AUAudioUnit {
         _ renderEvent: UnsafePointer<AURenderEvent>?,
         processor: MidiClawAUProcessor
     ) {
-        var event = renderEvent
+        var event: UnsafePointer<AURenderEvent>? = renderEvent
         while let currentEvent = event {
             if currentEvent.pointee.head.eventType == .MIDI {
                 let midiEvent = currentEvent.pointee.MIDI
@@ -212,7 +213,7 @@ public final class MidiClawAudioUnit: AUAudioUnit {
                     }
                 }
             }
-            event = currentEvent.pointee.head.next
+            event = UnsafePointer(currentEvent.pointee.head.next)
         }
     }
 

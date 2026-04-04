@@ -12,7 +12,7 @@ struct PianoRollView: View {
             HStack {
                 Image(systemName: "pianokeys")
                     .font(.title2)
-                    .foregroundStyle(.accent)
+                    .foregroundStyle(Color.accentColor)
                 VStack(alignment: .leading) {
                     Text("Piano")
                         .font(.headline)

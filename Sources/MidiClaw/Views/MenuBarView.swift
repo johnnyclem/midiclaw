@@ -71,7 +71,7 @@ struct MenuBarView: View {
             // Mindi Toggle
             HStack {
                 Image(systemName: "wand.and.stars")
-                    .foregroundStyle(appState.mindi.isEnabled ? .accent : .secondary)
+                    .foregroundStyle(appState.mindi.isEnabled ? Color.accentColor : .secondary)
                 Text("Mindi Accompanist")
                 Spacer()
                 Toggle("", isOn: $appState.mindi.isEnabled)

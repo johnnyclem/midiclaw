@@ -46,7 +46,7 @@ struct ChatView: View {
         HStack {
             Image(systemName: "wand.and.stars")
                 .font(.title2)
-                .foregroundStyle(.accent)
+                .foregroundStyle(Color.accentColor)
 
             VStack(alignment: .leading) {
                 Text("Chat with Mindi")
@@ -95,7 +95,7 @@ struct ChatView: View {
             } label: {
                 Image(systemName: "arrow.up.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(inputText.isEmpty ? .secondary : .accent)
+                    .foregroundStyle(inputText.isEmpty ? .secondary : Color.accentColor)
             }
             .buttonStyle(.plain)
             .disabled(inputText.isEmpty || isProcessing)

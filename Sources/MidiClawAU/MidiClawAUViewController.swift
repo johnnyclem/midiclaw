@@ -20,7 +20,7 @@ public final class MidiClawAUViewController: AUViewController {
     }
 
     /// Called by the host to provide the AudioUnit instance.
-    public override var auAudioUnit: AUAudioUnit? {
+    public var auAudioUnit: AUAudioUnit? {
         didSet {
             if let au = auAudioUnit as? MidiClawAudioUnit {
                 audioUnit = au

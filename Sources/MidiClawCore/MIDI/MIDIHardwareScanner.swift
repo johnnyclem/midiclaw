@@ -31,7 +31,7 @@ public final class MIDIHardwareScanner: @unchecked Sendable {
     public func scan() {
         sources = scanSources()
         destinations = scanDestinations()
-        Log.midi.info("Scanned MIDI devices: \(sources.count) sources, \(destinations.count) destinations")
+        Log.midi.info("Scanned MIDI devices: \(self.sources.count) sources, \(self.destinations.count) destinations")
     }
 
     private func scanSources() -> [MIDIEndpointInfo] {

@@ -67,7 +67,7 @@ struct MainContentView: View {
         VStack(spacing: 8) {
             HStack {
                 Image(systemName: "wand.and.stars")
-                    .foregroundStyle(appState.mindi.isEnabled ? .accent : .secondary)
+                    .foregroundStyle(appState.mindi.isEnabled ? Color.accentColor : .secondary)
                 Text("Mindi")
                     .font(.headline)
                 Spacer()
@@ -155,7 +155,7 @@ struct MainContentView: View {
     // MARK: - Toolbar
 
     @ToolbarContentBuilder
-    private var toolbarContent: ToolbarContent {
+    private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .automatic) {
             HStack(spacing: 12) {
                 // Recording indicator

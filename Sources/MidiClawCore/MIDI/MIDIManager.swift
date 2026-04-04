@@ -28,7 +28,7 @@ public final class MIDIManager: @unchecked Sendable {
         }
 
         isStarted = true
-        Log.midi.info("MIDI client '\(clientName)' started")
+        Log.midi.info("MIDI client '\(self.clientName)' started")
     }
 
     /// Stop the MIDI client and dispose of all resources.
@@ -37,7 +37,7 @@ public final class MIDIManager: @unchecked Sendable {
         MIDIClientDispose(client)
         client = 0
         isStarted = false
-        Log.midi.info("MIDI client '\(clientName)' stopped")
+        Log.midi.info("MIDI client '\(self.clientName)' stopped")
     }
 
     /// Access the underlying CoreMIDI client reference.

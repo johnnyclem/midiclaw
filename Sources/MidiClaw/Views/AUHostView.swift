@@ -2,6 +2,7 @@
 import SwiftUI
 import AVFoundation
 import AudioToolbox
+import MidiClawCore
 
 /// View for hosting and testing the MidiClaw AUv3 plugin.
 struct AUHostView: View {
@@ -36,7 +37,7 @@ struct AUHostView: View {
         HStack {
             Image(systemName: "puzzlepiece.extension")
                 .font(.title2)
-                .foregroundStyle(.accent)
+                .foregroundStyle(.tint)
             VStack(alignment: .leading) {
                 Text("Audio Unit Host")
                     .font(.headline)

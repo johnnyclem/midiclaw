@@ -46,7 +46,7 @@ struct StepSequencerView: View {
         HStack {
             Image(systemName: "square.grid.3x3.fill")
                 .font(.title2)
-                .foregroundStyle(.accent)
+                .foregroundStyle(Color.accentColor)
             VStack(alignment: .leading) {
                 Text("Step Sequencer")
                     .font(.headline)

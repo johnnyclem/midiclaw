@@ -63,7 +63,7 @@ struct OnboardingView: View {
 
             Image(systemName: "pianokeys")
                 .font(.system(size: 64))
-                .foregroundStyle(.accent)
+                .foregroundStyle(.tint)
 
             Text("Welcome to MidiClaw")
                 .font(.largeTitle.bold())
@@ -88,7 +88,7 @@ struct OnboardingView: View {
 
             Image(systemName: "cable.connector")
                 .font(.system(size: 48))
-                .foregroundStyle(.accent)
+                .foregroundStyle(.tint)
 
             Text("MIDI Setup")
                 .font(.title.bold())
@@ -133,7 +133,7 @@ struct OnboardingView: View {
 
             Image(systemName: "brain")
                 .font(.system(size: 48))
-                .foregroundStyle(.accent)
+                .foregroundStyle(.tint)
 
             Text("Local LLM Setup")
                 .font(.title.bold())
@@ -199,7 +199,7 @@ struct OnboardingView: View {
 
             Image(systemName: "music.note.list")
                 .font(.system(size: 64))
-                .foregroundStyle(.accent)
+                .foregroundStyle(.tint)
 
             Text("You're Ready!")
                 .font(.largeTitle.bold())
@@ -234,7 +234,7 @@ struct SetupStepRow: View {
                     .frame(width: 28, height: 28)
                 Text("\(number)")
                     .font(.caption.bold())
-                    .foregroundStyle(.accent)
+                .foregroundStyle(Color.accentColor)
             }
 
             VStack(alignment: .leading, spacing: 2) {
