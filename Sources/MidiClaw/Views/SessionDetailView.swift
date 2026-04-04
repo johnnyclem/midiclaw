@@ -1,6 +1,7 @@
 #if os(macOS)
 import SwiftUI
 import MidiClawCore
+import UniformTypeIdentifiers
 
 /// Detail view for a selected session: playback controls, export, token preview.
 struct SessionDetailView: View {
@@ -108,8 +109,6 @@ struct SessionDetailView: View {
 }
 
 // MARK: - MIDI File Document for export
-
-import UniformTypeIdentifiers
 
 struct MIDIFileDocument: FileDocument {
     static var readableContentTypes: [UTType] { [.midi] }
